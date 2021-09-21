@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"github.com/wailsapp/wails"
 )
 
