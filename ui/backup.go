@@ -6,10 +6,10 @@ import (
 )
 
 type Backup struct {
-	savePath string
+	savePath   string
 	sourcePath string
-	runtime  *wails.Runtime
-	logger   *wails.CustomLogger
+	runtime    *wails.Runtime
+	logger     *wails.CustomLogger
 }
 
 func NewBackup() (*Backup, error) {
@@ -17,9 +17,32 @@ func NewBackup() (*Backup, error) {
 	return result, nil
 }
 
-func (b *Backup) SelectSourceDir() {
+func (b *Backup) SelectSourceDir() (string, error) {
 	src := b.runtime.Dialog.SelectDirectory()
-	b.logger.Info("Source directory selected" + src)
+	if src != "" {
+		b.logger.Info("Source directory selected:" + src)
+		// UI逻辑
+		// 后端逻辑
+		return src, nil
+	} else {
+		b.logger.Info("No directory selected!")
+		err := fmt.Errorf("No directory selected!")
+		return "", err
+	}
+}
+
+func (b *Backup) SelectDestDir() (string, error) {
+	src := b.runtime.Dialog.SelectDirectory()
+	if src != "" {
+		b.logger.Info("Destination directory selected:" + src)
+		// UI逻辑
+		// 后端逻辑
+		return src, nil
+	} else {
+		b.logger.Info("No directory selected!")
+		err := fmt.Errorf("No directory selected!")
+		return "", err
+	}
 }
 
 func (b *Backup) WailsInit(runtime *wails.Runtime) error {
