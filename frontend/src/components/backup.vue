@@ -51,7 +51,7 @@
     <v-row>
       <v-col cols="12" sm="6" offset-sm="3">
         <v-layout justify-center align-center class="px-0">
-          <v-btn fab color="success" disabled="!activateButton">
+          <v-btn fab color="success" @click="confirmBackup">
             <v-icon>
               backup
             </v-icon>
@@ -101,30 +101,30 @@
         errorMessage: " ",
         srcPath: "",
         destPath: "",
-        activateButton: false
+        // activateButton: false
       }
     },
 
-    computed: {
-      listenChange() {
-        const srcPath = this.srcPath
-        const destPath = this.destPath
-        return {srcPath, destPath}
-      }
-    },
-
-    watch: {
-      listenChange:{
-        handler:function(val) {
-          console.log('listening change' + val.srcPath + val.destPath)
-          var self = this
-          if (val.srcPath != "" && val.destPath != "") {
-            self.activateButton = true
-        }
-      },
-        deep: true
-      }
-    },
+    // computed: {
+    //   listenChange() {
+    //     const srcPath = this.srcPath
+    //     const destPath = this.destPath
+    //     return {srcPath, destPath}
+    //   }
+    // },
+    //
+    // watch: {
+    //   listenChange:{
+    //     handler:function(val) {
+    //       console.log('listening change' + val.srcPath + val.destPath)
+    //       var self = this
+    //       if (val.srcPath != "" && val.destPath != "") {
+    //         self.activateButton = true
+    //     }
+    //   },
+    //     deep: true
+    //   }
+    // },
 
     methods: {
       selectSrcDir: function () {
@@ -163,6 +163,21 @@
                 }, 5000)
               }
             });
+      },
+
+      confirmBackup: function () {
+        var self = this
+        if (self.srcPath != "" && self.destPath != "") {
+          //window.backend.Backup.writeConfig()
+          //TODO: 后端函数未实现
+        } else {
+          self.errorMessage = "Please finish selecting the directories first."
+          self.errorDialog = true
+          setTimeout(() => {
+            self.errorMessage = ""
+            self.errorDialog = false
+          }, 5000)
+        }
       },
 
       getMessage: function () {
