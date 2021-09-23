@@ -4,7 +4,7 @@
       <v-col cols="12" sm="6" offset-sm="3">
         <v-card outlined class="pa-4 ma-4">
           <v-card-title>
-            Select source
+            选择需要备份的目录
           </v-card-title>
           <v-card-text>
             {{srcPath}}
@@ -21,13 +21,19 @@
       <v-col cols="12" sm="6" offset-sm="3">
         <v-card outlined class="pa-4 ma-4">
           <v-card-title>
-            Advanced Features
+            输入密码
           </v-card-title>
-          <v-card-actions>
-            <v-layout justify-center align-center class="px-0">
-              <v-btn color="blue" @click="getMessage">Press Me!!!</v-btn>
-            </v-layout>
-          </v-card-actions>
+          <v-text-field
+              v-model="password"
+              :append-icon="showPassowrd ? 'visibility' : 'visibility_off'"
+              :rules="[rules.required, rules.max]"
+              :type="showPassowrd ? 'text' : 'password'"
+              name="input-10-1"
+              label="输入密码"
+              hint="密码不得多于15位"
+              counter
+              @click:append="showPassowrd = !showPassowrd"
+          ></v-text-field>
         </v-card>
       </v-col>
     </v-row>
@@ -35,14 +41,14 @@
       <v-col cols="12" sm="6" offset-sm="3">
         <v-card outlined class="pa-4 ma-4">
           <v-card-title>
-            Select destination
+            选择目标备份路径（未实现）
           </v-card-title>
           <v-card-text>
             {{destPath}}
           </v-card-text>
           <v-card-actions>
             <v-layout justify-center align-center class="px-0">
-              <v-btn color="#81D4FA" @click="selectDestDir">Open...</v-btn>
+              <v-btn disabled color="#81D4FA" @click="selectDestDir">Open...</v-btn>
             </v-layout>
           </v-card-actions>
         </v-card>
@@ -98,33 +104,19 @@
         raised: true,
         dialog: false,
         errorDialog: false,
-        errorMessage: " ",
+        errorMessage: "",
         srcPath: "",
-        destPath: "",
-        // activateButton: false
+        destPath: "notUsed",
+        // activateButton: false,
+        showPassword: false,
+        password:"",
+        rules: {
+          required: value => !!value || 'Required.',
+          max: v => v.length < 16 || '至多输入15位密码'
+        },
       }
     },
 
-    // computed: {
-    //   listenChange() {
-    //     const srcPath = this.srcPath
-    //     const destPath = this.destPath
-    //     return {srcPath, destPath}
-    //   }
-    // },
-    //
-    // watch: {
-    //   listenChange:{
-    //     handler:function(val) {
-    //       console.log('listening change' + val.srcPath + val.destPath)
-    //       var self = this
-    //       if (val.srcPath != "" && val.destPath != "") {
-    //         self.activateButton = true
-    //     }
-    //   },
-    //     deep: true
-    //   }
-    // },
 
     methods: {
       selectSrcDir: function () {
@@ -167,16 +159,25 @@
 
       confirmBackup: function () {
         var self = this
-        if (self.srcPath != "" && self.destPath != "") {
-          //window.backend.Backup.writeConfig()
-          //TODO: 后端函数未实现
-        } else {
-          self.errorMessage = "Please finish selecting the directories first."
+        if (self.srcPath == "") {
+          self.errorMessage = "请选择需要备份的目录！"
           self.errorDialog = true
           setTimeout(() => {
             self.errorMessage = ""
             self.errorDialog = false
           }, 5000)
+        } else if (self.password == "" || self.password.length > 15) {
+          self.errorMessage = "请正确输入密码！"
+          self.errorDialog = true
+          setTimeout(() => {
+            self.errorMessage = ""
+            self.errorDialog = false
+          }, 5000)
+        } else {
+          window.backend.Backup.PerformBackup(self.srcPath, self.password).then(result => {
+            self.message = result
+            self.dialog = true
+          })
         }
       },
 

@@ -1,0 +1,10 @@
+[
+  {
+    "filePath": "/usr/home/example-path-1",
+    "time": "2021/9/21 13:00:00"
+  },
+  {
+    "filePath": "/usr/home/example-path-2",
+    "time": "2021/9/22 14:00:00"
+  }
+]
