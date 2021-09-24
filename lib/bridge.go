@@ -63,14 +63,20 @@ func (b *Backup) SelectRestoreFile() (string, error) {
 }
 
 func (b *Backup) PerformBackup(srcPath, password string) (string, error) {
-	RunBackup(srcPath, password)
-	//TODO: 后端错误处理
+	err := RunBackup(srcPath, password)
+	if err != nil {
+		b.logger.Info(err.Error())
+		return "", fmt.Errorf(err.Error())
+	}
 	return "Backup: Function call success!", nil
 }
 
 func (b *Backup) PerformRestore(srcPath, password string) (string, error) {
-	RunRestore(srcPath, password)
-	//TODO: 后端错误处理
+	err := RunRestore(srcPath, password)
+	if err != nil {
+		b.logger.Info(err.Error())
+		return "", fmt.Errorf(err.Error())
+	}
 	return "Restore: Function call success!", nil
 }
 

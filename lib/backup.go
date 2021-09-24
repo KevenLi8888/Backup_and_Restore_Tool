@@ -36,24 +36,39 @@ func (s Set) Delete(key uint64) {
 	delete(s, key2)
 }
 
-func Zip(src_dir string, zip_file_name string) {
+func Zip(src_dir string, zip_file_name string) error {
 
 	//创建索引文件 记录源路径
 	outputFile, outputError := os.OpenFile("pathpathpath.txt", os.O_WRONLY|os.O_CREATE, 0666)
 	if outputError != nil {
 		fmt.Printf("An error occurred with file opening or creation\n")
-		return
+		return outputError
 	}
 	defer outputFile.Close()
 
 	outputWriter := bufio.NewWriter(outputFile)
 	//outputWriter.WriteString(outputString)
+
 	//写入源路径
-	outputWriter.WriteString(src_dir + "\n")
+	_, outputError = outputWriter.WriteString(src_dir + "\n")
+	if outputError != nil {
+		fmt.Printf("An error occurred while writing to file\n")
+		return outputError
+	}
+
 	//移动索引文件到源路径
-	os.Rename("./pathpathpath.txt", filepath.Join(src_dir, "pathpathpath.txt"))
+	outputError = os.Rename("./pathpathpath.txt", filepath.Join(src_dir, "pathpathpath.txt"))
+	if outputError != nil {
+		fmt.Printf("An error occurred while moving files to source path\n")
+		return outputError
+	}
+
 	// 预防：旧文件无法覆盖 删除当前目录下的相同名字的tar文件 tar文件生成在当前目录
-	os.RemoveAll(zip_file_name)
+	outputError = os.RemoveAll(zip_file_name)
+	if outputError != nil {
+		fmt.Printf("An error occurred while removing files\n")
+		return outputError
+	}
 
 	// 创建：zip文件
 	zipfile, _ := os.Create(zip_file_name)
@@ -155,8 +170,13 @@ func Zip(src_dir string, zip_file_name string) {
 	})
 
 	//删除路径文件
-	os.Remove(filepath.Join(src_dir, "pathpathpath.txt"))
+	outputError = os.Remove(filepath.Join(src_dir, "pathpathpath.txt"))
+	if outputError != nil {
+		fmt.Printf("An error occurred with writing to source path\n")
+		return outputError
+	}
 
+	return nil
 }
 
 //使用aes库和base64库实现加密
@@ -201,7 +221,7 @@ func AesEncrypt(origData, key []byte) ([]byte, error) {
 //	return origData, nil
 //}
 
-func RunBackup(srcPath, password string) {
+func RunBackup(srcPath, password string) error {
 
 	/*
 		list := os.Args
@@ -214,7 +234,11 @@ func RunBackup(srcPath, password string) {
 	//desFileName := list[2]
 	//listDir(srcFileName, desFileName, 0)
 
-	Zip(srcPath, filepath.Base(srcPath)+".gz")
+	err := Zip(srcPath, filepath.Base(srcPath)+".gz")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
 	//fmt.Println("请设置密码(必须小于16位）：")
 	//var aeskey []byte
@@ -232,14 +256,15 @@ func RunBackup(srcPath, password string) {
 	//读文件
 	pass, err := ioutil.ReadFile(filepath.Base(srcPath) + ".gz")
 	if err == nil {
-		fmt.Println("file content =", string(pass))
+		//fmt.Println("file content =", string(pass))
+		//减少console中输出的过量内容
 	} else {
 		fmt.Println("read file error =", err)
 	}
 	xpass, err := AesEncrypt(pass, aeskey)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	pass64 := base64.StdEncoding.EncodeToString(xpass)
 
@@ -248,20 +273,21 @@ func RunBackup(srcPath, password string) {
 	f, err := os.Create(filepath.Base(srcPath) + ".gz") //文件已存在，将会清空
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	l, err := f.WriteString(string(pass64))
 	if err != nil {
 		fmt.Println(err)
 		f.Close()
-		return
+		return err
 	}
 	fmt.Println(l, "写入文件成功")
 	err = f.Close()
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
+	return nil
 
 	/*
 		//解密

@@ -14,26 +14,46 @@ import (
 	"strings"
 )
 
-func Unzip(srcPath string, desPath string) { //desPath是中转
+func Unzip(srcPath string, desPath string) error { //desPath是中转
 
-	os.MkdirAll(".", 0755) //中转 TODO: path "."是啥意思
+	var errorMessage error
+
+	err := os.MkdirAll(".", 0755) //中转 TODO: path "."是啥意思
+	if err != nil {
+		fmt.Printf("An error occurred while making directory\n")
+		return err
+	}
 	// file read
 	//打开并读取压缩文件中的内容/
 	fr, err := zip.OpenReader(srcPath)
 	var iserr int
 	if err != nil {
 		fmt.Println("无法压缩,密码不对")
+		errorMessage = fmt.Errorf("wrong password")
 		//os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
 		//fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中恢复到" + srcPath)
 		iserr = 1
+
 		//panic(err)
 	}
-	defer fr.Close()
+
 	if iserr == 1 {
-		os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+		err := os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+		if err != nil {
+			fmt.Printf("An error occurred writing to source path\n")
+			return err
+		}
 		fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中恢复到" + srcPath)
-		panic(err)
+
+		//panic会直接引起程序崩溃，改成Go的标准错误处理逻辑以配合前端
+		//panic(err)
+		return errorMessage
+
 	}
+
+	//调整了调用位置，密码错误时无需调用fr.Close()，否则导致程序出错
+	defer fr.Close()
+
 	//r.reader.file 是一个集合，里面包括了压缩包里面的所有文件
 	for _, file := range fr.Reader.File {
 		//判断文件该目录文件是否为文件夹
@@ -72,7 +92,7 @@ func Unzip(srcPath string, desPath string) { //desPath是中转
 	file, err := os.OpenFile(filepath.Join(desPath, "pathpathpath.txt"), os.O_RDWR, 0666)
 	if err != nil {
 		fmt.Println("Open file error!", err)
-		return
+		return err
 	}
 	defer file.Close()
 
@@ -85,7 +105,12 @@ func Unzip(srcPath string, desPath string) { //desPath是中转
 			n = 1
 			pathpathpath = line
 			//移动文件夹
-			os.Rename(desPath, pathpathpath)
+			err := os.Rename(desPath, pathpathpath)
+			if err != nil {
+				fmt.Printf("An error occurred while moving files\n")
+				return err
+			}
+
 			//listDir(desPath, pathpathpath, 0)
 			fmt.Println("从" + desPath + "移到了" + pathpathpath)
 		} else {
@@ -104,10 +129,20 @@ func Unzip(srcPath string, desPath string) { //desPath是中转
 	}
 
 	//删除路径文件
-	os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
+	err = os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
+	if err != nil {
+		fmt.Printf("An error occurred while removing files\n")
+		return err
+	}
 
-	os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+	err = os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+	if err != nil {
+		fmt.Printf("An error occurred while moving files to source path\n")
+		return err
+	}
 	fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中移到" + srcPath)
+
+	return nil
 }
 
 //使用aes库和base64库实现解密
@@ -168,7 +203,7 @@ func CopyFile(dstName, srcName string) (written int64, err error) {
 	return io.Copy(dst, src)
 }
 
-func RunRestore(srcPath, password string) {
+func RunRestore(srcPath, password string) error {
 	//list := os.Args
 	//if len(list) != 2 {
 	//	fmt.Println("参数错误")
@@ -186,45 +221,56 @@ func RunRestore(srcPath, password string) {
 	}
 	pass64, err := ioutil.ReadFile(srcPath)
 	if err == nil {
-		fmt.Println("file content =", string(pass64))
+		//fmt.Println("file content =", string(pass64))
+		//减少console中输出的过量内容
 	} else {
 		fmt.Println("read file error =", err)
 	}
 	//提前备份一份
-	CopyFile(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+	_, err = CopyFile(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+	if err != nil {
+		fmt.Printf("An error occurred while copying files\n")
+		return err
+	}
+
 	//return
 	//解密
 	bytesPass, err := base64.StdEncoding.DecodeString(string(pass64))
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	tpass, err := AesDecrypt(bytesPass, aeskey)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	//fmt.Printf("解密后:%s\n", tpass)
 	//写入文件
 	f, err := os.Create(srcPath) //文件已存在，将会清空
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	l, err := f.WriteString(string(tpass))
 	if err != nil {
 		fmt.Println(err)
 		f.Close()
-		return
+		return err
 	}
 	fmt.Println(l, "写入文件成功")
 	err = f.Close()
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 	fmt.Println("开始解压")
-	Unzip(srcPath, "./mnt") //这个是中转站 先解压到这里
+	err = Unzip(srcPath, "./mnt") //这个是中转站 先解压到这里
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return nil
 }
 
 /*

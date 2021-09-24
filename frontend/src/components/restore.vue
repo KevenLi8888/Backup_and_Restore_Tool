@@ -180,6 +180,14 @@
             self.message = result
             self.dialog = true
           })
+          .catch(error => {
+            self.errorMessage = error
+            self.errorDialog = true
+            setTimeout(() => {
+              self.errorMessage = ""
+              self.errorDialog = false
+            }, 5000)
+          });
         }
       },
 

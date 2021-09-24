@@ -25,14 +25,14 @@
           </v-card-title>
           <v-text-field
               v-model="password"
-              :append-icon="showPassowrd ? 'visibility' : 'visibility_off'"
+              :append-icon="showPassword ? 'visibility' : 'visibility_off'"
               :rules="[rules.required, rules.max]"
-              :type="showPassowrd ? 'text' : 'password'"
+              :type="showPassword ? 'text' : 'password'"
               name="input-10-1"
               label="输入密码"
               hint="密码不得多于15位"
               counter
-              @click:append="showPassowrd = !showPassowrd"
+              @click:append="showPassword = !showPassword"
           ></v-text-field>
         </v-card>
       </v-col>
@@ -178,6 +178,14 @@
             self.message = result
             self.dialog = true
           })
+          .catch(error => {
+            self.errorMessage = error
+            self.errorDialog = true
+            setTimeout(() => {
+              self.errorMessage = ""
+              self.errorDialog = false
+            }, 5000)
+          });
         }
       },
 
