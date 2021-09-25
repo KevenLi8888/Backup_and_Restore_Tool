@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+
 	"github.com/wailsapp/wails"
 )
 
@@ -56,7 +57,7 @@ func (b *Backup) SelectRestoreFile() (string, error) {
 }
 
 func (b *Backup) PerformBackup(srcPath, desPath, password, filename string) (string, error) {
-	err := RunBackup(srcPath, password)
+	err := RunBackup(srcPath, desPath, password, filename)
 	if err != nil {
 		b.logger.Info(err.Error())
 		return "", fmt.Errorf(err.Error())
