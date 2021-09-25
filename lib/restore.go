@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 func Unzip(srcPath string, desPath string) error { //desPath是中转
@@ -124,6 +125,8 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 				os.Symlink(arr[2], arr[1])
 			} else if arr[0] == "hard" {
 				os.Link(arr[2], arr[1])
+			}else {
+				syscall.Mkfifo(arr[1], 0666) 
 			}
 		}
 	}

@@ -116,6 +116,17 @@ func Zip(src_dir string, zip_file_name string) error {
 			}
 
 		}
+		//是管道文件
+		if stat.Mode==4532{
+			//读出软链接内容
+			s:=""
+			
+			s="pipe "+path+"\n"
+			//写到索引文件
+			//soft+管道文件名
+			outputWriter.WriteString(s)
+			return nil
+		}
 		// 判断：文件是不是文件夹
 		if info.IsDir() {
 			header.Name += `/`
