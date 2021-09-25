@@ -29,7 +29,7 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 	var iserr int
 	if err != nil {
 		fmt.Println("无法压缩,密码不对")
-		errorMessage = fmt.Errorf("wrong password")
+		errorMessage = fmt.Errorf("密码错误！")
 		//os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
 		//fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中恢复到" + srcPath)
 		iserr = 1
@@ -204,16 +204,6 @@ func CopyFile(dstName, srcName string) (written int64, err error) {
 }
 
 func RunRestore(srcPath, password string) error {
-	//list := os.Args
-	//if len(list) != 2 {
-	//	fmt.Println("参数错误")
-	//	return
-	//}
-
-	//fmt.Println("请输入密码：")
-	//var aeskey []byte
-	//fmt.Scanln(&aeskey)
-
 	aeskey := []byte(password)
 	num := 16 - len(aeskey)
 	for i := 0; i < num; i++ {

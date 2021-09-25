@@ -1,63 +1,101 @@
 <template>
-  <v-container fluid class="px-0">
+  <v-container class="px-0">
+
     <v-row>
-      <v-col cols="12" sm="6" offset-sm="3">
-        <v-card outlined class="pa-4 ma-4">
-          <v-card-title>
+      <v-col>
+        <v-card outlined class="pa-4 ma-4" height="85%">
+          <v-card-title class="justify-center">
             选择需要备份的目录
           </v-card-title>
-          <v-card-text>
+          <v-card-text class=text-center>
             {{srcPath}}
           </v-card-text>
           <v-card-actions>
             <v-layout justify-center align-center class="px-0">
-              <v-btn color="#81D4FA" @click="selectSrcDir">Open...</v-btn>
+              <v-btn color="#81D4FA" @click="selectSrcDir">打开...</v-btn>
             </v-layout>
           </v-card-actions>
         </v-card>
       </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" sm="6" offset-sm="3">
-        <v-card outlined class="pa-4 ma-4">
-          <v-card-title>
-            输入密码
+
+      <v-col>
+        <v-card outlined class="pa-4 ma-4" height="85%">
+          <v-card-title class="justify-center">
+            输入备份密码
           </v-card-title>
-          <v-text-field
-              v-model="password"
-              :append-icon="showPassword ? 'visibility' : 'visibility_off'"
-              :rules="[rules.required, rules.max]"
-              :type="showPassword ? 'text' : 'password'"
-              name="input-10-1"
-              label="输入密码"
-              hint="密码不得多于15位"
-              counter
-              @click:append="showPassword = !showPassword"
-          ></v-text-field>
+          <v-layout justify-center align-center class="px-0">
+            <v-text-field
+                v-model="password"
+                :append-icon="showPassword ? 'visibility' : 'visibility_off'"
+                :rules="[rules.required, rules.max]"
+                :type="showPassword ? 'text' : 'password'"
+                name="input-10-1"
+                label="输入密码"
+                outlined
+                hint="密码不得多于15位"
+                counter
+                @click:append="showPassword = !showPassword"
+            ></v-text-field>
+          </v-layout>
         </v-card>
       </v-col>
     </v-row>
+
     <v-row>
-      <v-col cols="12" sm="6" offset-sm="3">
-        <v-card outlined class="pa-4 ma-4">
-          <v-card-title>
-            选择目标备份路径（未实现）
+      <v-col>
+        <v-card outlined class="pa-4 ma-4" height="85%">
+          <v-card-title class="justify-center">
+            选择目标备份路径（后端未实现）
           </v-card-title>
-          <v-card-text>
+          <v-card-text class=text-center v-if="this.destPath==''">
+            不指定则默认备份至项目目录下./backup文件夹
+          </v-card-text>
+          <v-card-text class=text-center v-else>
             {{destPath}}
           </v-card-text>
           <v-card-actions>
             <v-layout justify-center align-center class="px-0">
-              <v-btn disabled color="#81D4FA" @click="selectDestDir">Open...</v-btn>
+              <v-btn color="#81D4FA" @click="selectDestDir">打开...</v-btn>
             </v-layout>
           </v-card-actions>
         </v-card>
       </v-col>
+
+      <v-col>
+        <v-card outlined class="pa-4 ma-4" height="85%">
+          <v-card-title class="justify-center">
+            输入备份文件名称
+          </v-card-title>
+          <v-layout justify-center align-center class="px-0">
+            <v-text-field
+                v-model="filename"
+                label="输入文件名"
+                outlined
+                clearable
+                hint="留空以使用默认名称"
+                persistent-hint
+                :rules="[rules.validFileName]"
+            ></v-text-field>
+          </v-layout>
+        </v-card>
+      </v-col>
     </v-row>
+
+    <v-row>
+      <v-col>
+        <v-spacer></v-spacer>
+      </v-col>
+    </v-row>
+
     <v-row>
       <v-col cols="12" sm="6" offset-sm="3">
         <v-layout justify-center align-center class="px-0">
-          <v-btn fab color="success" @click="confirmBackup">
+          <v-btn
+              fab
+              color="success"
+              :loading="loading"
+              :disabled="loading"
+              @click="confirmBackup">
             <v-icon>
               backup
             </v-icon>
@@ -66,29 +104,15 @@
       </v-col>
     </v-row>
 
-    <div class='text-xs-center'>
-      <v-dialog v-model="errorDialog" width="500">
-        <v-card>
-          <v-card-title class="headline" primary-title>ERROR!</v-card-title>
-          <v-card-text>{{errorMessage}}</v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="primary" text @click="errorDialog = false">Fine</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </div>
     <div class="text-xs-center">
-      <v-dialog v-model="dialog" width="500">
+      <v-dialog v-model="dialog" width="400">
         <v-card>
-          <v-card-title class="headline" primary-title>Message from Go</v-card-title>
+          <v-card-title class="headline" primary-title>⚠️ 注意️</v-card-title>
           <v-card-text>{{message}}</v-card-text>
           <v-divider></v-divider>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" text @click="dialog = false">Awesome</v-btn>
-<!--            TODO:待优化，只保留一个考虑message是否要清空 -->
+            <v-btn color="primary" text @click="dialog = false; message = ''">好</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -103,16 +127,19 @@
         message: "",
         raised: true,
         dialog: false,
-        errorDialog: false,
-        errorMessage: "",
-        srcPath: "",
-        destPath: "notUsed",
-        // activateButton: false,
         showPassword: false,
-        password:"",
+        loading: false,
+        srcPath: "",
+        destPath: "",
+        password: "",
+        filename: "",
         rules: {
-          required: value => !!value || 'Required.',
-          max: v => v.length < 16 || '至多输入15位密码'
+          required: value => !!value || '需要设定密码',
+          max: v => v.length < 16 || '至多输入15位密码',
+          validFileName: value => {
+            const pattern = /[/\\?%*:|"<>.？。：｜]/gi
+            return !(pattern.test(value)) || '文件名含有非法字符'
+          }
         },
       }
     },
@@ -128,12 +155,8 @@
             })
             .catch(error => {
               if (self.srcPath == "") {
-                self.errorMessage = error
-                self.errorDialog = true
-                setTimeout(() => {
-                  self.errorMessage = ""
-                  self.errorDialog = false
-                }, 5000)
+                self.message = error
+                self.dialog = true
               }
             });
       },
@@ -147,12 +170,8 @@
             })
             .catch(error => {
               if (self.destPath == "") {
-                self.errorMessage = error
-                self.errorDialog = true
-                setTimeout(() => {
-                  self.errorMessage = ""
-                  self.errorDialog = false
-                }, 5000)
+                self.message = error
+                self.dialog = true
               }
             });
       },
@@ -160,42 +179,25 @@
       confirmBackup: function () {
         var self = this
         if (self.srcPath == "") {
-          self.errorMessage = "请选择需要备份的目录！"
-          self.errorDialog = true
-          setTimeout(() => {
-            self.errorMessage = ""
-            self.errorDialog = false
-          }, 5000)
+          self.message = "请选择需要备份的目录！"
+          self.dialog = true
         } else if (self.password == "" || self.password.length > 15) {
-          self.errorMessage = "请正确输入密码！"
-          self.errorDialog = true
-          setTimeout(() => {
-            self.errorMessage = ""
-            self.errorDialog = false
-          }, 5000)
+          self.message = "请正确输入密码！"
+          self.dialog = true
         } else {
-          window.backend.Backup.PerformBackup(self.srcPath, self.password).then(result => {
+          self.loading = true
+          window.backend.Backup.PerformBackup(self.srcPath, self.destPath, self.password, self.filename).then(result => {
             self.message = result
             self.dialog = true
+            self.loading = false
           })
           .catch(error => {
-            self.errorMessage = error
-            self.errorDialog = true
-            setTimeout(() => {
-              self.errorMessage = ""
-              self.errorDialog = false
-            }, 5000)
+            self.message = error
+            self.dialog = true
+            self.loading = false
           });
         }
       },
-
-      getMessage: function () {
-        var self = this
-        window.backend.basic().then(result => {
-          self.message = result
-          self.dialog = true
-        })
-      }
     }
   }
 </script>

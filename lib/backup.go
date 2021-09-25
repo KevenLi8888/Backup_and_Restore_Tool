@@ -139,7 +139,6 @@ func Zip(src_dir string, zip_file_name string) error {
 			file, _ := os.Open(path)
 			defer file.Close()
 			io.Copy(writer, file)
-
 		}
 		return nil
 	})
@@ -224,15 +223,11 @@ func AesEncrypt(origData, key []byte) ([]byte, error) {
 func RunBackup(srcPath, password string) error {
 
 	/*
-		list := os.Args
-		if len(list) != 2 {
-			fmt.Println("参数错误")
-			return
-		}
+		TODO: 需要处理的逻辑
+			函数格式：func RunBackup(srcPath, desPath, password, filename string) error {...}
+			1. if desPath == "" then 备份到默认路径（./backup）else 备份到desPath
+			2. if filename == "" then 备份文件名=默认文件名（原目录名称）else 备份文件名=filename
 	*/
-	//srcFileName := srcPath
-	//desFileName := list[2]
-	//listDir(srcFileName, desFileName, 0)
 
 	err := Zip(srcPath, filepath.Base(srcPath)+".gz")
 	if err != nil {

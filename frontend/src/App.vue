@@ -1,13 +1,5 @@
 <template>
   <v-app id="inspire">
-
-<!--    <v-toolbar-->
-<!--        flat-->
-<!--        color="primary"-->
-<!--        dark-->
-<!--    >-->
-<!--      <v-toolbar-title>Backup & Restore Tool</v-toolbar-title>-->
-<!--    </v-toolbar>-->
     <v-tabs
         v-model="tab"
         background-color="blue accent-2"
@@ -16,19 +8,19 @@
         icons-and-text
     >
       <v-tab>
-        Backup
+        备份
         <v-icon>
           upload_file
         </v-icon>
       </v-tab>
       <v-tab>
-        Restore
+        还原
         <v-icon>
           restore_page
         </v-icon>
       </v-tab>
       <v-tab>
-        About
+        关于
         <v-icon>
           info
         </v-icon>
@@ -52,11 +44,16 @@
         <v-card flat>
           <v-card-text>
             <p>
-              Fusce a quam. Phasellus nec sem in justo pellentesque facilisis. Nam eget dui. Proin viverra, ligula sit amet ultrices semper, ligula arcu tristique sapien, a accumsan nisi mauris ac eros. In dui magna, posuere eget, vestibulum et, tempor auctor, justo.
+              Fusce a quam. Phasellus nec sem in justo pellentesque facilisis. Nam eget dui.
+              Proin viverra, ligula sit amet ultrices semper, ligula arcu tristique sapien, a accumsan nisi mauris ac eros.
+              In dui magna, posuere eget, vestibulum et, tempor auctor, justo.
             </p>
 
             <p class="mb-0">
-              Cras sagittis. Phasellus nec sem in justo pellentesque facilisis. Proin sapien ipsum, porta a, auctor quis, euismod ut, mi. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nam at tortor in tellus interdum sagittis.
+              Cras sagittis. Phasellus nec sem in justo pellentesque facilisis.
+              Proin sapien ipsum, porta a, auctor quis, euismod ut, mi.
+              Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.
+              Nam at tortor in tellus interdum sagittis.
             </p>
           </v-card-text>
         </v-card>
