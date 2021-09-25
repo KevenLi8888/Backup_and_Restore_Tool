@@ -13,9 +13,15 @@
 
 ## 1. 安装Wails
 
-请参见链接 ：https://wails.app/zh/gettingstarted/linux/ 。
+请参见链接：https://wails.app/zh/gettingstarted/linux/ 。
 
-只需要执行到 `go get -u github.com/wailsapp/wails/cmd/wails` 步骤。
+注意：`go get` 方法在 go version 1.17中已被废弃，
+请不要使用教程中提供的 `go get -u github.com/wailsapp/wails/cmd/wails` 命令。
+
+
+而是使用：`go install github.com/wailsapp/wails/cmd/wails@latest`
+
+只需要执行到上述步骤。
 
 
 ## 2. 程序构建
