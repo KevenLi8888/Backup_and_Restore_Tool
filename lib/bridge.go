@@ -3,7 +3,6 @@ package lib
 import (
 	"fmt"
 	"github.com/wailsapp/wails"
-	"io/ioutil"
 )
 
 type Backup struct {
@@ -22,13 +21,11 @@ func (b *Backup) SelectSourceDir() (string, error) {
 	src := b.runtime.Dialog.SelectDirectory()
 	if src != "" {
 		b.logger.Info("Source directory selected:" + src)
-		// 后端逻辑
 		b.sourcePath = src
-		// UI逻辑
 		return src, nil
 	} else {
 		b.logger.Info("No directory selected!")
-		err := fmt.Errorf("no directory selected")
+		err := fmt.Errorf("未选择目录！")
 		return "", err
 	}
 }
@@ -37,12 +34,10 @@ func (b *Backup) SelectDestDir() (string, error) {
 	src := b.runtime.Dialog.SelectDirectory()
 	if src != "" {
 		b.logger.Info("Destination directory selected:" + src)
-		// UI逻辑
-		// 后端逻辑
 		return src, nil
 	} else {
 		b.logger.Info("No directory selected!")
-		err := fmt.Errorf("No directory selected!")
+		err := fmt.Errorf("未选择目录！")
 		return "", err
 	}
 }
@@ -51,24 +46,22 @@ func (b *Backup) SelectRestoreFile() (string, error) {
 	src := b.runtime.Dialog.SelectFile()
 	if src != "" {
 		b.logger.Info("Restore file selected:" + src)
-		// 后端逻辑
 		b.sourcePath = src
-		// UI逻辑
 		return src, nil
 	} else {
 		b.logger.Info("No file selected!")
-		err := fmt.Errorf("no file selected")
+		err := fmt.Errorf("未选择文件！")
 		return "", err
 	}
 }
 
-func (b *Backup) PerformBackup(srcPath, password string) (string, error) {
+func (b *Backup) PerformBackup(srcPath, desPath, password, filename string) (string, error) {
 	err := RunBackup(srcPath, password)
 	if err != nil {
 		b.logger.Info(err.Error())
 		return "", fmt.Errorf(err.Error())
 	}
-	return "Backup: Function call success!", nil
+	return "✅ 备份完成", nil
 }
 
 func (b *Backup) PerformRestore(srcPath, password string) (string, error) {
@@ -77,18 +70,7 @@ func (b *Backup) PerformRestore(srcPath, password string) (string, error) {
 		b.logger.Info(err.Error())
 		return "", fmt.Errorf(err.Error())
 	}
-	return "Restore: Function call success!", nil
-}
-
-//TODO: 相关逻辑待实现
-func (b *Backup) LoadList() (string, error) {
-	filePath := "./ui/backupHistory.json"
-	b.logger.Infof("Loading list from: %s", filePath)
-	bytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		err = fmt.Errorf("Unable to open list: %s", filePath)
-	}
-	return string(bytes), err
+	return "✅ 恢复完成", nil
 }
 
 func (b *Backup) WailsInit(runtime *wails.Runtime) error {

@@ -25,9 +25,9 @@ func main() {
 	}
 
 	app := wails.CreateApp(&wails.AppConfig{
-		Width:  1200,
-		Height: 960,
-		Title:  "gui1",
+		Width:  1024,
+		Height: 768,
+		Title:  "备份与还原工具",
 		JS:     js,
 		CSS:    css,
 		Colour: "#131313",
