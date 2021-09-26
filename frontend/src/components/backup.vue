@@ -45,7 +45,7 @@
       <v-col>
         <v-card outlined class="pa-4 ma-4" height="85%">
           <v-card-title class="justify-center">
-            选择目标备份路径（后端未实现）
+            选择目标备份路径
           </v-card-title>
           <v-card-text class=text-center v-if="this.destPath==''">
             不指定则默认备份至项目目录下./backup文件夹
@@ -178,11 +178,15 @@
 
       confirmBackup: function () {
         var self = this
+        const pattern = /[/\\?%*:|"<>.？。：｜]/gi
         if (self.srcPath == "") {
           self.message = "请选择需要备份的目录！"
           self.dialog = true
         } else if (self.password == "" || self.password.length > 15) {
           self.message = "请正确输入密码！"
+          self.dialog = true
+        } else if (pattern.test(self.filename)) {
+          self.message = "请输入合法文件名！"
           self.dialog = true
         } else {
           self.loading = true
