@@ -181,6 +181,8 @@ func Zip(src_dir string, zip_file_name string) error {
 }*/
 func Zip(src_dir string, zip_file_name string) error {
 
+	//TODO: refactor: camelCase, zip_file_name -> zipFilePath
+
 	//创建索引文件 记录源路径
 	outputFile, outputError := os.OpenFile("pathpathpath.txt", os.O_WRONLY|os.O_CREATE, 0666)
 	if outputError != nil {
@@ -389,12 +391,31 @@ func RunBackup(srcPath, desPath, password, filename string) error {
 	} else {
 		fname = filename + ".gz"
 	}
+
 	var des string
 	if desPath == "" {
-		des = filepath.Join("./backup", fname)
+		defaultBackupDir := "./backup"
+		des = filepath.Join(defaultBackupDir, fname)
+
+		//判断是否在并创建./backup文件夹
+		exist, err := PathExists(defaultBackupDir)
+		if err != nil {
+			fmt.Printf("An error occured while trying to access the default backup directory [%v]\n", err)
+		}
+		if !exist {
+			fmt.Printf("The cache directory [%v] doesn't exist, creating...\n", defaultBackupDir)
+			// 创建文件夹
+			err := os.Mkdir(defaultBackupDir, os.ModePerm)
+			if err != nil {
+				fmt.Printf("Mkdir failed![%v]\n", err)
+			} else {
+				fmt.Printf("Mkdir successed!\n")
+			}
+		}
 	} else {
 		des = filepath.Join(desPath, fname)
 	}
+
 	err := Zip(srcPath, des)
 	if err != nil {
 		fmt.Println(err)

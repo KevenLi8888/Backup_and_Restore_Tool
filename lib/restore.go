@@ -266,7 +266,7 @@ func RunRestore(srcPath, password string) error {
 	cacheDir := "./cache1"
 	exist, err := PathExists(cacheDir)
 	if err != nil {
-		fmt.Printf("An error occured during getting cache directory [%v]\n", err)
+		fmt.Printf("An error occured during while trying to access the cache directory [%v]\n", err)
 	}
 
 	if !exist {

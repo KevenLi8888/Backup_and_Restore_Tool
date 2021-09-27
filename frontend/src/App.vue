@@ -41,22 +41,11 @@
         </v-container>
       </v-tab-item>
       <v-tab-item>
-        <v-card flat>
-          <v-card-text>
-            <p>
-              Fusce a quam. Phasellus nec sem in justo pellentesque facilisis. Nam eget dui.
-              Proin viverra, ligula sit amet ultrices semper, ligula arcu tristique sapien, a accumsan nisi mauris ac eros.
-              In dui magna, posuere eget, vestibulum et, tempor auctor, justo.
-            </p>
-
-            <p class="mb-0">
-              Cras sagittis. Phasellus nec sem in justo pellentesque facilisis.
-              Proin sapien ipsum, porta a, auctor quis, euismod ut, mi.
-              Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.
-              Nam at tortor in tellus interdum sagittis.
-            </p>
-          </v-card-text>
-        </v-card>
+        <v-container fluid class="px-0">
+          <v-layout justify-center align-center class="px-0">
+            <about></about>
+          </v-layout>
+        </v-container>
       </v-tab-item>
     </v-tabs>
   </v-app>
@@ -65,6 +54,7 @@
 <script>
   import Backup from "./components/backup.vue"
   import Restore from "./components/restore.vue"
+  import About from "./components/about.vue"
   import "material-design-icons-iconfont";
 
 
@@ -75,7 +65,8 @@
     }),
     components: {
       Backup,
-      Restore
+      Restore,
+      About
     },
     props: {
       source: String
@@ -84,7 +75,21 @@
 </script>
 
 <style>
-  .logo {
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+
+.v-application {
+  font-family: 'Noto Sans SC', sans-serif}
+
+.logo {
     width: 16em;
   }
+
+  h1 {
+    margin-top: 2em;
+    position: relative;
+    min-height: 5rem;
+    width: 100%;
+  }
+
 </style>
