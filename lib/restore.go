@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"archive/zip"
 	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
@@ -12,6 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
+
+	"gui1/lib/zip"
 )
 
 func Unzip(srcPath string, desPath string) error { //desPath是中转
@@ -105,17 +107,24 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 			n = 1
 			pathpathpath = line
 			//移动文件夹
+			_, err1 := os.Stat(filepath.Dir(pathpathpath))
+			if err1 != nil {
+				os.MkdirAll(filepath.Dir(pathpathpath), 0755)
+			}
 			err := os.Rename(desPath, pathpathpath)
 			if err != nil {
 				fmt.Printf("An error occurred while moving files\n")
-				return err
+				os.RemoveAll(desPath)
+				//return err
 			}
+
+			//os.Rename(desPath, pathpathpath)
 
 			//listDir(desPath, pathpathpath, 0)
 			fmt.Println("从" + desPath + "移到了" + pathpathpath)
 		} else {
 			arr := strings.Fields(line) //按照空格分隔
-			if len(arr) < 3 {
+			if len(arr) < 2 {
 				break
 			}
 			if arr[0] == "soft" {
@@ -124,22 +133,33 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 				os.Symlink(arr[2], arr[1])
 			} else if arr[0] == "hard" {
 				os.Link(arr[2], arr[1])
+			} else {
+				syscall.Mkfifo(arr[1], 0666)
 			}
 		}
 	}
 
 	//删除路径文件
-	err = os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
-	if err != nil {
-		fmt.Printf("An error occurred while removing files\n")
-		return err
-	}
+	/*
+		err = os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
+		if err != nil {
+			fmt.Printf("An error occurred while removing files\n")
+			return err
+		}
 
-	err = os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
-	if err != nil {
-		fmt.Printf("An error occurred while moving files to source path\n")
-		return err
-	}
+		err = os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+		if err != nil {
+			fmt.Printf("An error occurred while moving files to source path\n")
+			return err
+		}
+		fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中移到" + srcPath)
+
+		return nil
+	*/
+	//删除路径文件
+	os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
+
+	os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
 	fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中移到" + srcPath)
 
 	return nil
