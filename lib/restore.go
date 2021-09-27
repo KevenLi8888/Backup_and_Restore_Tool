@@ -20,7 +20,8 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 
 	var errorMessage error
 
-	err := os.MkdirAll(".", 0755) //中转 TODO: path "."是啥意思
+	//err := os.MkdirAll(".", 0755) //中转 TODO: path "."是啥意思
+	err := os.MkdirAll(desPath, 0755)
 	if err != nil {
 		fmt.Printf("An error occurred while making directory\n")
 		return err
@@ -40,12 +41,14 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 	}
 
 	if iserr == 1 {
-		err := os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+		err := os.Rename(filepath.Join("./cache1", filepath.Base(srcPath)), srcPath)
 		if err != nil {
 			fmt.Printf("An error occurred writing to source path\n")
 			return err
 		}
-		fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中恢复到" + srcPath)
+		fmt.Println("从" + filepath.Join("./cache1", filepath.Base(srcPath)) + "中恢复到" + srcPath)
+		os.RemoveAll("./cache")
+		os.RemoveAll("./cache1")
 
 		//panic会直接引起程序崩溃，改成Go的标准错误处理逻辑以配合前端
 		//panic(err)
@@ -105,7 +108,7 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 		line = strings.TrimSpace(line)  //去掉首尾空格
 		if n == 0 {
 			n = 1
-			pathpathpath = line
+			pathpathpath = line //TODO: refactor: 重命名为restoreToPath
 			//移动文件夹
 			_, err1 := os.Stat(filepath.Dir(pathpathpath))
 			if err1 != nil {
@@ -156,11 +159,20 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 
 		return nil
 	*/
-	//删除路径文件
-	os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
 
-	os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
-	fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中移到" + srcPath)
+	//删除路径文件
+	err = os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
+	if err != nil {
+		fmt.Printf("An error occurred while removing files\n")
+		return err
+	}
+
+	err = os.Rename(filepath.Join("./cache1", filepath.Base(srcPath)), srcPath)
+	if err != nil {
+		fmt.Printf("An error occurred while moving files to source path\n")
+		return err
+	}
+	fmt.Println("从" + filepath.Join("./cache1", filepath.Base(srcPath)) + "中移到" + srcPath)
 
 	return nil
 }
@@ -223,6 +235,17 @@ func CopyFile(dstName, srcName string) (written int64, err error) {
 	return io.Copy(dst, src)
 }
 
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func RunRestore(srcPath, password string) error {
 	aeskey := []byte(password)
 	num := 16 - len(aeskey)
@@ -236,8 +259,28 @@ func RunRestore(srcPath, password string) error {
 	} else {
 		fmt.Println("read file error =", err)
 	}
+
 	//提前备份一份
-	_, err = CopyFile(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
+	//修复缓存位置问题：添加不存在则先创建逻辑
+
+	cacheDir := "./cache1"
+	exist, err := PathExists(cacheDir)
+	if err != nil {
+		fmt.Printf("An error occured during getting cache directory [%v]\n", err)
+	}
+
+	if !exist {
+		fmt.Printf("The cache directory [%v] doesn't exist, creating...\n", cacheDir)
+		// 创建文件夹
+		err := os.Mkdir(cacheDir, os.ModePerm)
+		if err != nil {
+			fmt.Printf("Mkdir failed![%v]\n", err)
+		} else {
+			fmt.Printf("Mkdir successed!\n")
+		}
+	}
+
+	_, err = CopyFile(filepath.Join(cacheDir, filepath.Base(srcPath)), srcPath)
 	if err != nil {
 		fmt.Printf("An error occurred while copying files\n")
 		return err
@@ -275,7 +318,12 @@ func RunRestore(srcPath, password string) error {
 		return err
 	}
 	fmt.Println("开始解压")
-	err = Unzip(srcPath, "./mnt") //这个是中转站 先解压到这里
+	err = Unzip(srcPath, "./cache") //这个是中转站 先解压到这里
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	err = os.RemoveAll(cacheDir)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

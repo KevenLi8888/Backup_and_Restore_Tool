@@ -188,6 +188,9 @@
         } else if (pattern.test(self.filename)) {
           self.message = "请输入合法文件名！"
           self.dialog = true
+        } else if (self.filename == "cache" || self.filename == "cache1") {
+          self.message = "cache和cache1为系统保留名称，请更换文件名！"
+          self.dialog = true
         } else {
           self.loading = true
           window.backend.Backup.PerformBackup(self.srcPath, self.destPath, self.password, self.filename).then(result => {
