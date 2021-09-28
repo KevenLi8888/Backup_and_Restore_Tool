@@ -281,7 +281,7 @@ func Zip(src_dir string, zip_file_name string) error {
 		}
 		//把硬链接信息写入索引文件
 		if sett.Has(stat.Ino) == true {
-			s := "hard " + path + " " + sett[int(stat.Ino)]
+			s := "hard " + path + " " + sett[int(stat.Ino)] + "\n"
 			outputWriter.WriteString(s)
 			return nil
 		}
