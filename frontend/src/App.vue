@@ -10,19 +10,19 @@
       <v-tab>
         备份
         <v-icon>
-          upload_file
+          mdi-file-upload-outline
         </v-icon>
       </v-tab>
       <v-tab>
         还原
         <v-icon>
-          restore_page
+          mdi-file-restore-outline
         </v-icon>
       </v-tab>
       <v-tab>
         关于
         <v-icon>
-          info
+          mdi-information-outline
         </v-icon>
       </v-tab>
 
@@ -75,11 +75,11 @@
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+/*@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');*/
 
 
-.v-application {
-  font-family: 'Noto Sans SC', sans-serif}
+/*.v-application {*/
+/*  font-family: 'Noto Sans SC', sans-serif}*/
 
 .logo {
     width: 16em;

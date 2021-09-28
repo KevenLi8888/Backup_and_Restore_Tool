@@ -28,7 +28,7 @@
           <v-layout justify-center align-center class="px-0">
             <v-text-field
                 v-model="password"
-                :append-icon="showPassword ? 'visibility' : 'visibility_off'"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 :rules="[rules.required, rules.max]"
                 :type="showPassword ? 'text' : 'password'"
                 name="input-10-1"
@@ -59,7 +59,7 @@
               :disabled="loading"
               @click="confirmRestore">
             <v-icon>
-              restore
+              mdi-backup-restore
             </v-icon>
           </v-btn>
         </v-layout>
