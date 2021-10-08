@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"crypto/aes"
@@ -13,8 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-
-	"gui1/lib/zip"
 )
 
 //用map实现set
@@ -37,11 +36,10 @@ func (s Set) Delete(key uint64) {
 	delete(s, key2)
 }
 
-/*
-func Zip(src_dir string, zip_file_name string) error {
+func Zip(srcDir string, zipFilePath string) error {
 
 	//创建索引文件 记录源路径
-	outputFile, outputError := os.OpenFile("pathpathpath.txt", os.O_WRONLY|os.O_CREATE, 0666)
+	outputFile, outputError := os.OpenFile("restoreToPath.txt", os.O_WRONLY|os.O_CREATE, 0666)
 	if outputError != nil {
 		fmt.Printf("An error occurred with file opening or creation\n")
 		return outputError
@@ -52,28 +50,28 @@ func Zip(src_dir string, zip_file_name string) error {
 	//outputWriter.WriteString(outputString)
 
 	//写入源路径
-	_, outputError = outputWriter.WriteString(src_dir + "\n")
+	_, outputError = outputWriter.WriteString(srcDir + "\n")
 	if outputError != nil {
 		fmt.Printf("An error occurred while writing to file\n")
 		return outputError
 	}
 
 	//移动索引文件到源路径
-	outputError = os.Rename("./pathpathpath.txt", filepath.Join(src_dir, "pathpathpath.txt"))
+	outputError = os.Rename("./restoreToPath.txt", filepath.Join(srcDir, "restoreToPath.txt"))
 	if outputError != nil {
 		fmt.Printf("An error occurred while moving files to source path\n")
 		return outputError
 	}
 
 	// 预防：旧文件无法覆盖 删除当前目录下的相同名字的tar文件 tar文件生成在当前目录
-	outputError = os.RemoveAll(zip_file_name)
+	outputError = os.RemoveAll(zipFilePath)
 	if outputError != nil {
 		fmt.Printf("An error occurred while removing files\n")
 		return outputError
 	}
 
 	// 创建：zip文件
-	zipfile, _ := os.Create(zip_file_name)
+	zipfile, _ := os.Create(zipFilePath)
 	defer zipfile.Close()
 
 	// 打开：zip文件
@@ -82,166 +80,24 @@ func Zip(src_dir string, zip_file_name string) error {
 
 	// 遍历路径信息
 	sett := make(Set)
-	filepath.Walk(src_dir, func(path string, info os.FileInfo, _ error) error {
+	filepath.Walk(srcDir, func(path string, info os.FileInfo, _ error) error {
 		//给walk传入匿名函数
 		// 如果是源路径，提前进行下一个遍历
-		if path == src_dir {
+		if path == srcDir {
 			return nil
 		}
 
 		// 获取：文件头信息
 		header, _ := zip.FileInfoHeader(info) //获得文件信息
-		header.Name = strings.TrimPrefix(path, src_dir+`/`)
+		header.Name = strings.TrimPrefix(path, srcDir+`/`)
 
 		//判断是否是索引文件
 		//是则跳过
-		if header.Name == "pathpathpath.txt" {
+		if header.Name == "restoreToPath.txt" {
 			return nil
 		}
 		stat, _ := info.Sys().(*syscall.Stat_t)
-		//判断是否是软链接
-		//是则读出内容 把内容写到索引文件
-		if stat.Mode == 41471 {
-			//读出软链接内容
-			s := ""
-			for len := 128; ; len *= 2 {
-				b := make([]byte, len)
-				n, _ := syscall.Readlink(path, b)
-				//n怎么会是-1
-				if n < len {
-					s = "soft " + path + " " + string(b[0:n]) + "\n"
-					//写到索引文件
-					//soft+软链接路径+软链接内容写入索引文件
-					outputWriter.WriteString(s)
-					return nil
-				}
-			}
 
-		}
-		// 判断：文件是不是文件夹
-		if info.IsDir() {
-			header.Name += `/`
-		} else {
-			// 设置：zip的文件压缩算法
-			header.Method = zip.Deflate
-		}
-		//把硬链接信息写入索引文件
-		if sett.Has(stat.Ino) == true {
-			s := "hard " + path + " " + sett[int(stat.Ino)]
-			outputWriter.WriteString(s)
-			return nil
-		}
-
-		// 创建：压缩包头部信息
-		writer, _ := archive.CreateHeader(header)
-
-		if !info.IsDir() {
-			stat, _ := info.Sys().(*syscall.Stat_t)
-			sett.Add(stat.Ino, path)
-			file, _ := os.Open(path)
-			defer file.Close()
-			io.Copy(writer, file)
-		}
-		return nil
-	})
-
-	//刷新索引文件的缓冲
-	outputWriter.Flush()
-	//索引文件也打包进去
-	filepath.Walk(src_dir, func(path string, info os.FileInfo, _ error) error {
-		//给walk传入匿名函数
-		// 如果是源路径，提前进行下一个遍历
-		if path == src_dir {
-			return nil
-		}
-
-		// 获取：文件头信息
-		header, _ := zip.FileInfoHeader(info) //获得文件信息
-		header.Name = strings.TrimPrefix(path, src_dir+`/`)
-		if header.Name != "pathpathpath.txt" {
-			return nil
-		}
-
-		// 创建：压缩包头部信息
-		writer, _ := archive.CreateHeader(header)
-		file, _ := os.Open(path)
-		defer file.Close()
-		io.Copy(writer, file)
-		return nil
-	})
-
-	//删除路径文件
-	outputError = os.Remove(filepath.Join(src_dir, "pathpathpath.txt"))
-	if outputError != nil {
-		fmt.Printf("An error occurred with writing to source path\n")
-		return outputError
-	}
-
-	return nil
-}*/
-func Zip(src_dir string, zip_file_name string) error {
-
-	//TODO: refactor: camelCase, zip_file_name -> zipFilePath
-
-	//创建索引文件 记录源路径
-	outputFile, outputError := os.OpenFile("pathpathpath.txt", os.O_WRONLY|os.O_CREATE, 0666)
-	if outputError != nil {
-		fmt.Printf("An error occurred with file opening or creation\n")
-		return outputError
-	}
-	defer outputFile.Close()
-
-	outputWriter := bufio.NewWriter(outputFile)
-	//outputWriter.WriteString(outputString)
-
-	//写入源路径
-	_, outputError = outputWriter.WriteString(src_dir + "\n")
-	if outputError != nil {
-		fmt.Printf("An error occurred while writing to file\n")
-		return outputError
-	}
-
-	//移动索引文件到源路径
-	outputError = os.Rename("./pathpathpath.txt", filepath.Join(src_dir, "pathpathpath.txt"))
-	if outputError != nil {
-		fmt.Printf("An error occurred while moving files to source path\n")
-		return outputError
-	}
-
-	// 预防：旧文件无法覆盖 删除当前目录下的相同名字的tar文件 tar文件生成在当前目录
-	outputError = os.RemoveAll(zip_file_name)
-	if outputError != nil {
-		fmt.Printf("An error occurred while removing files\n")
-		return outputError
-	}
-
-	// 创建：zip文件
-	zipfile, _ := os.Create(zip_file_name)
-	defer zipfile.Close()
-
-	// 打开：zip文件
-	archive := zip.NewWriter(zipfile)
-	defer archive.Close()
-
-	// 遍历路径信息
-	sett := make(Set)
-	filepath.Walk(src_dir, func(path string, info os.FileInfo, _ error) error {
-		//给walk传入匿名函数
-		// 如果是源路径，提前进行下一个遍历
-		if path == src_dir {
-			return nil
-		}
-
-		// 获取：文件头信息
-		header, _ := zip.FileInfoHeader(info) //获得文件信息
-		header.Name = strings.TrimPrefix(path, src_dir+`/`)
-
-		//判断是否是索引文件
-		//是则跳过
-		if header.Name == "pathpathpath.txt" {
-			return nil
-		}
-		stat, _ := info.Sys().(*syscall.Stat_t)
 		//判断是否是软链接
 		//是则读出内容 把内容写到索引文件
 		if stat.Mode >= 41000 && stat.Mode <= 42000 {
@@ -250,7 +106,6 @@ func Zip(src_dir string, zip_file_name string) error {
 			for len := 128; ; len *= 2 {
 				b := make([]byte, len)
 				n, _ := syscall.Readlink(path, b)
-				//n怎么会是-1
 				if n < len {
 					s = "soft " + path + " " + string(b[0:n]) + "\n"
 					//写到索引文件
@@ -259,19 +114,18 @@ func Zip(src_dir string, zip_file_name string) error {
 					return nil
 				}
 			}
-
 		}
+
 		//是管道文件
 		if stat.Mode >= 4500 && stat.Mode <= 4600 {
-
 			s := ""
-
 			s = "pipe " + path + "\n"
 			//写到索引文件
 			//pipe+管道文件名
 			outputWriter.WriteString(s)
 			return nil
 		}
+
 		// 判断：文件是不是文件夹
 		if info.IsDir() {
 			header.Name += `/`
@@ -279,6 +133,7 @@ func Zip(src_dir string, zip_file_name string) error {
 			// 设置：zip的文件压缩算法
 			header.Method = zip.Deflate
 		}
+
 		//把硬链接信息写入索引文件
 		if sett.Has(stat.Ino) == true {
 			s := "hard " + path + " " + sett[int(stat.Ino)] + "\n"
@@ -301,18 +156,19 @@ func Zip(src_dir string, zip_file_name string) error {
 
 	//刷新索引文件的缓冲
 	outputWriter.Flush()
+
 	//索引文件也打包进去
-	filepath.Walk(src_dir, func(path string, info os.FileInfo, _ error) error {
+	filepath.Walk(srcDir, func(path string, info os.FileInfo, _ error) error {
 		//给walk传入匿名函数
 		// 如果是源路径，提前进行下一个遍历
-		if path == src_dir {
+		if path == srcDir {
 			return nil
 		}
 
 		// 获取：文件头信息
 		header, _ := zip.FileInfoHeader(info) //获得文件信息
-		header.Name = strings.TrimPrefix(path, src_dir+`/`)
-		if header.Name != "pathpathpath.txt" {
+		header.Name = strings.TrimPrefix(path, srcDir+`/`)
+		if header.Name != "restoreToPath.txt" {
 			return nil
 		}
 
@@ -325,7 +181,7 @@ func Zip(src_dir string, zip_file_name string) error {
 	})
 
 	//删除路径文件
-	outputError = os.Remove(filepath.Join(src_dir, "pathpathpath.txt"))
+	outputError = os.Remove(filepath.Join(srcDir, "restoreToPath.txt"))
 	if outputError != nil {
 		fmt.Printf("An error occurred with writing to source path\n")
 		return outputError
@@ -342,12 +198,6 @@ func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
 	return append(ciphertext, padtext...)
 }
 
-//func PKCS5UnPadding(origData []byte) []byte {
-//	length := len(origData)
-//	unpadding := int(origData[length-1])
-//	return origData[:(length - unpadding)]
-//}
-
 func AesEncrypt(origData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -361,28 +211,11 @@ func AesEncrypt(origData, key []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-//解密
-
-//func AesDecrypt(crypted, key []byte) ([]byte, error) {
-//	block, err := aes.NewCipher(key)
-//	if err != nil {
-//		return nil, err
-//	}
-//	blockSize := block.BlockSize()
-//	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
-//	origData := make([]byte, len(crypted))
-//	blockMode.CryptBlocks(origData, crypted)
-//	origData = PKCS5UnPadding(origData)
-//	return origData, nil
-//}
-
 func RunBackup(srcPath, desPath, password, filename string) error {
 
 	/*
-		TODO: 需要处理的逻辑
-			函数格式：func RunBackup(srcPath, desPath, password, filename string) error {...}
-			1. if desPath == "" then 备份到默认路径（./backup）else 备份到desPath
-			2. if filename == "" then 备份文件名=默认文件名（原目录名称）else 备份文件名=filename
+		1. if desPath == "" then 备份到默认路径（./backup）else 备份到desPath
+		2. if filename == "" then 备份文件名=默认文件名（原目录名称）else 备份文件名=filename
 	*/
 
 	var fname string
@@ -422,21 +255,13 @@ func RunBackup(srcPath, desPath, password, filename string) error {
 		return err
 	}
 
-	//fmt.Println("请设置密码(必须小于16位）：")
-	//var aeskey []byte
-	//fmt.Scanln(&aeskey)
-
 	aeskey := []byte(password)
 	num := 16 - len(aeskey)
 	for i := 0; i < num; i++ {
 		aeskey = append(aeskey, 0)
 	}
 
-	//var aeskey = []byte("321423u9y8d2fwfl")
-	//pass := []byte("vdncloud123456")
-
 	//读文件
-	//pass, err := ioutil.ReadFile(filepath.Base(srcPath) + ".gz")
 	pass, err := ioutil.ReadFile(des)
 	if err == nil {
 		//fmt.Println("file content =", string(pass))
@@ -452,8 +277,8 @@ func RunBackup(srcPath, desPath, password, filename string) error {
 	pass64 := base64.StdEncoding.EncodeToString(xpass)
 
 	//fmt.Printf("加密后:%v\n", pass64)
+
 	//写入文件
-	//f, err := os.Create(filepath.Base(srcPath) + ".gz") //文件已存在，将会清空
 	f, err := os.Create(des) //文件已存在，将会清空
 	if err != nil {
 		fmt.Println(err)
@@ -472,33 +297,4 @@ func RunBackup(srcPath, desPath, password, filename string) error {
 		return err
 	}
 	return nil
-
-	/*
-		//解密
-		bytesPass, err := base64.StdEncoding.DecodeString(pass64)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		tpass, err := AesDecrypt(bytesPass, aeskey)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Printf("解密后:%s\n", tpass)
-	*/
-	/*
-		list := os.Args
-		if len(list) != 2 {
-			fmt.Println("参数错误")
-			return
-		}
-
-			//srcFileName := srcPath
-			//desFileName := list[2]
-			//listDir(srcFileName, desFileName, 0)
-
-		Zip(srcPath, filepath.Base(srcPath)+".gz")
-	*/
-
 }

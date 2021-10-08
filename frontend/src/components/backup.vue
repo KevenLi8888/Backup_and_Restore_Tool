@@ -191,6 +191,9 @@
         } else if (self.filename == "cache" || self.filename == "cache1") {
           self.message = "cache和cache1为系统保留名称，请更换文件名！"
           self.dialog = true
+        } else if (self.srcPath == self.destPath) {
+          self.message = "目标路径不能和备份目录相同，请重新选择目标路径！"
+          self.dialog = true
         } else {
           self.loading = true
           window.backend.Backup.PerformBackup(self.srcPath, self.destPath, self.password, self.filename).then(result => {

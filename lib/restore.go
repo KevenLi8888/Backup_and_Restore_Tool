@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"archive/zip"
 	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
@@ -12,20 +13,18 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-
-	"gui1/lib/zip"
 )
 
-func Unzip(srcPath string, desPath string) error { //desPath是中转
+func Unzip(srcPath string, desPath string) error {
+	//desPath是中转
 
 	var errorMessage error
-
-	//err := os.MkdirAll(".", 0755) //中转 TODO: path "."是啥意思
 	err := os.MkdirAll(desPath, 0755)
 	if err != nil {
 		fmt.Printf("An error occurred while making directory\n")
 		return err
 	}
+
 	// file read
 	//打开并读取压缩文件中的内容/
 	fr, err := zip.OpenReader(srcPath)
@@ -33,11 +32,8 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 	if err != nil {
 		fmt.Println("无法压缩,密码不对")
 		errorMessage = fmt.Errorf("密码错误！")
-		//os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
 		//fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中恢复到" + srcPath)
 		iserr = 1
-
-		//panic(err)
 	}
 
 	if iserr == 1 {
@@ -53,7 +49,6 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 		//panic会直接引起程序崩溃，改成Go的标准错误处理逻辑以配合前端
 		//panic(err)
 		return errorMessage
-
 	}
 
 	//调整了调用位置，密码错误时无需调用fr.Close()，否则导致程序出错
@@ -69,6 +64,7 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 			}
 			continue
 		}
+
 		//为文件时，打开文件
 		r, err := file.Open()
 
@@ -77,7 +73,8 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 			fmt.Println(err)
 			continue
 		}
-		//这里在控制台输出文件的文件名及路径
+
+		//在控制台输出文件的文件名及路径
 		fmt.Println("unzip: ", file.Name)
 
 		//在对应的目录中创建相同的文件
@@ -86,15 +83,17 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 			fmt.Println(err)
 			continue
 		}
+
 		//将内容复制
 		io.Copy(NewFile, r)
+
 		//关闭文件
 		NewFile.Close()
 		r.Close()
 	}
 
-	var pathpathpath string //目标地址
-	file, err := os.OpenFile(filepath.Join(desPath, "pathpathpath.txt"), os.O_RDWR, 0666)
+	var restoreToPath string //目标地址
+	file, err := os.OpenFile(filepath.Join(desPath, "restoreToPath.txt"), os.O_RDWR, 0666)
 	if err != nil {
 		fmt.Println("Open file error!", err)
 		return err
@@ -108,23 +107,20 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 		line = strings.TrimSpace(line)  //去掉首尾空格
 		if n == 0 {
 			n = 1
-			pathpathpath = line //TODO: refactor: 重命名为restoreToPath
+			restoreToPath = line
 			//移动文件夹
-			_, err1 := os.Stat(filepath.Dir(pathpathpath))
+			_, err1 := os.Stat(filepath.Dir(restoreToPath))
 			if err1 != nil {
-				os.MkdirAll(filepath.Dir(pathpathpath), 0755)
+				os.MkdirAll(filepath.Dir(restoreToPath), 0755)
 			}
-			err := os.Rename(desPath, pathpathpath)
+			err := os.Rename(desPath, restoreToPath)
 			if err != nil {
 				fmt.Printf("An error occurred while moving files\n")
 				os.RemoveAll(desPath)
 				//return err
 			}
 
-			//os.Rename(desPath, pathpathpath)
-
-			//listDir(desPath, pathpathpath, 0)
-			fmt.Println("从" + desPath + "移到了" + pathpathpath)
+			fmt.Println("从" + desPath + "移到了" + restoreToPath)
 		} else {
 			arr := strings.Fields(line) //按照空格分隔
 			if len(arr) < 2 {
@@ -143,25 +139,7 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 	}
 
 	//删除路径文件
-	/*
-		err = os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
-		if err != nil {
-			fmt.Printf("An error occurred while removing files\n")
-			return err
-		}
-
-		err = os.Rename(filepath.Join("../mnt", filepath.Base(srcPath)), srcPath)
-		if err != nil {
-			fmt.Printf("An error occurred while moving files to source path\n")
-			return err
-		}
-		fmt.Println("从" + filepath.Join("../mnt", filepath.Base(srcPath)) + "中移到" + srcPath)
-
-		return nil
-	*/
-
-	//删除路径文件
-	err = os.Remove(filepath.Join(pathpathpath, "pathpathpath.txt"))
+	err = os.Remove(filepath.Join(restoreToPath, "restoreToPath.txt"))
 	if err != nil {
 		fmt.Printf("An error occurred while removing files\n")
 		return err
@@ -178,33 +156,11 @@ func Unzip(srcPath string, desPath string) error { //desPath是中转
 }
 
 //使用aes库和base64库实现解密
-
-//func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
-//	padding := blockSize - len(ciphertext)%blockSize
-//	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-//	return append(ciphertext, padtext...)
-//}
-
 func PKCS5UnPadding(origData []byte) []byte {
 	length := len(origData)
 	unpadding := int(origData[length-1])
 	return origData[:(length - unpadding)]
 }
-
-//func AesEncrypt(origData, key []byte) ([]byte, error) {
-//	block, err := aes.NewCipher(key)
-//	if err != nil {
-//		return nil, err
-//	}
-//	blockSize := block.BlockSize()
-//	origData = PKCS5Padding(origData, blockSize)
-//	blockMode := cipher.NewCBCEncrypter(block, key[:blockSize])
-//	crypted := make([]byte, len(origData))
-//	blockMode.CryptBlocks(crypted, origData)
-//	return crypted, nil
-//}
-
-//解密
 
 func AesDecrypt(crypted, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
@@ -220,7 +176,6 @@ func AesDecrypt(crypted, key []byte) ([]byte, error) {
 }
 
 //拷贝文件
-
 func CopyFile(dstName, srcName string) (written int64, err error) {
 	src, err := os.Open(srcName)
 	if err != nil {
@@ -286,7 +241,6 @@ func RunRestore(srcPath, password string) error {
 		return err
 	}
 
-	//return
 	//解密
 	bytesPass, err := base64.StdEncoding.DecodeString(string(pass64))
 	if err != nil {
@@ -330,14 +284,3 @@ func RunRestore(srcPath, password string) error {
 	}
 	return nil
 }
-
-/*
-func main() {
-	list := os.Args
-	if len(list) != 2 {
-		fmt.Println("参数错误")
-		return
-	}
-	CopyFile(filepath.Join("../mnt", filepath.Base(list[1])), list[1])
-}
-*/
