@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bnrt/lib"
 	_ "embed"
 	"github.com/wailsapp/wails"
-	"gui1/lib"
 	"log"
 )
 

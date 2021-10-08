@@ -1,4 +1,6 @@
-module gui1
+module bnrt
+
+//bnrt: backup and restore tool
 
 go 1.17
 

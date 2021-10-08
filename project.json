@@ -1,12 +1,12 @@
 {
- "name": "gui1",
+ "name": "Backup and Restore Tool",
  "description": "Enter your project description",
  "author": {
   "name": "Keven Li",
   "email": ""
  },
  "version": "0.1.0",
- "binaryname": "gui1",
+ "binaryname": "tool",
  "frontend": {
   "dir": "frontend",
   "install": "npm install",
