@@ -37,5 +37,3 @@ func main() {
 	app.Bind(basic)
 	app.Run()
 }
-
-//TODO: 最后需修改项目和Repo名称
