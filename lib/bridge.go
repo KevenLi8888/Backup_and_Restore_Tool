@@ -7,7 +7,6 @@ import (
 )
 
 type Backup struct {
-	savePath   string
 	sourcePath string
 	runtime    *wails.Runtime
 	logger     *wails.CustomLogger

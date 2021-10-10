@@ -87,7 +87,6 @@
     data () {
       return {
         message: "",
-        raised: true,
         dialog: false,
         showPassword: false,
         loading: false,
